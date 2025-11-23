@@ -1,5 +1,9 @@
 name: Deploy portfolio to GitHub Pages
 
+# Allow this workflow to push to the repository (required to publish to gh-pages)
+permissions:
+  contents: write
+
 on:
   push:
     branches:
@@ -11,6 +15,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # ensure the action can push back to the repo using the GITHUB_TOKEN
+          persist-credentials: true
+          # fetch full history so checkout/push behaves as expected (optional but helpful)
+          fetch-depth: 0
 
       - name: Use Node.js 18
         uses: actions/setup-node@v4
