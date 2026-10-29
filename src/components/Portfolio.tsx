@@ -1,512 +1,356 @@
-import { useState } from 'react';
-import { Camera, Code, Mail, Github, Linkedin, Download, ArrowRight, Brain, Eye, Zap, Database, Cloud, Settings, Box, Target, BarChart3, Layers, PlayCircle, Cpu, GitBranch } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
+import { ArrowDown, ArrowUpRight, Check, Copy, Download, FileText, Github, Linkedin, Mail, MapPin } from 'lucide-react';
 import pipelineImg from '../assets/object-detection-pipeline.png';
+import { education, experience, featured, profile, projects, publications, skills, stats, type Project } from '../data/portfolio';
+import { useReveal } from '../hooks';
+import DetectionVisual from './DetectionVisual';
+import Nav from './Nav';
 
-const Portfolio = () => {
-  const [activeTab, setActiveTab] = useState(0);
-  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
-  const [hoveredPipeline, setHoveredPipeline] = useState<number | null>(null);
-
-  const skills = {
-    mlai: ['Computer Vision', 'Object Detection', 'ML Pipelines', 'PyTorch', 'TensorFlow', 'OpenCV', 'MLflow'],
-    backend: ['Java', 'Spring', 'Python', 'RESTful APIs', 'Microservices', 'Multithreading'],
-    frontend: ['React', 'Angular', 'TypeScript', 'JavaScript', 'HTML/CSS'],
-    cloud: ['AWS EC2', 'Lambda', 'ECS', 'S3', 'Kinesis', 'SQS', 'DynamoDB'],
-    tools: ['Docker', 'Kubernetes', 'Jenkins', 'Git', 'Terraform', 'Redis']
-  };
-
-  const pipelineStages = [
-    { 
-      id: 1,
-      name: 'Data Ingestion', 
-      icon: <Database className="w-8 h-8" />, 
-      desc: 'Multi-source data collection',
-      details: 'Automated ingestion from diverse data sources with support for various formats and protocols'
-    },
-    { 
-      id: 2,
-      name: 'Ground Truth Creation', 
-      icon: <Box className="w-8 h-8" />, 
-      desc: 'Intelligent annotation system',
-      details: 'SAM3-assisted bounding box annotation with one-click segmentation. Few-shot and zero-shot annotation using Google OWL-v2 and DINO-v3'
-    },
-    { 
-      id: 3,
-      name: 'Class Support Generation', 
-      icon: <Layers className="w-8 h-8" />, 
-      desc: 'Patch optimization',
-      details: 'Automated patch size optimization with visual comparison of predicted vs. actual boxes and IOU score analysis'
-    },
-    { 
-      id: 4,
-      name: 'Threshold Optimization', 
-      icon: <BarChart3 className="w-8 h-8" />, 
-      desc: 'Parameter tuning',
-      details: 'Interactive visualization and optimization of objectness, similarity, and NMS thresholds with real-time feedback'
-    },
-    { 
-      id: 5,
-      name: 'Automated Deployment', 
-      icon: <PlayCircle className="w-8 h-8" />, 
-      desc: 'Smart orchestration',
-      details: 'Intelligent job scheduling with automatic resource allocation or user-defined system requirements'
-    }
-  ];
-
-  const experience = [
-    {
-      title: 'Graduate Research Assistant',
-      company: 'ICICLE (OSU)',
-      period: 'Jun 2025 - Present',
-      location: 'Columbus, OH',
-      type: 'research',
-      highlights: [
-        'Architected an end-to-end ML/AI pipeline democratizing object detection for researchers—eliminating the need for programming expertise through an intuitive drag-and-drop interface',
-        'Integrated SAM3 (Segment Anything Model) for intelligent annotation assistance, reducing annotation time by enabling one-click object segmentation that automatically generates bounding boxes',
-        'Implemented few-shot and zero-shot learning capabilities using Google\'s OWL-v2 and DINO-v3 models, enabling rapid annotation of new object classes with minimal training data',
-        'Developed advanced visualization tools for threshold optimization (objectness, similarity, NMS) with real-time IOU score analysis and graphical comparison of predicted vs. ground truth boxes',
-        'Built intelligent job orchestration system with automatic resource allocation and deployment optimization, handling complex ML workflows without manual job scheduling',
-        'Applied computer vision techniques to animal ecology and digital agriculture domains, enabling researchers to conduct experiments through clicks rather than code'
-      ]
-    },
-    {
-      title: 'Software Development Engineer',
-      company: 'Avis Budget Group',
-      period: 'Jun 2023 - Jul 2024',
-      location: 'Bangalore, India',
-      type: 'industry',
-      highlights: [
-        'Engineered a comprehensive web-based platform serving 500+ rental agents, digitizing the complete car rental lifecycle from reservation to return and damage assessment',
-        'Designed and implemented RESTful microservices handling 10,000+ daily transactions for fleet management, insurance processing, payment workflows, and vehicle tracking',
-        'Built automated data pipeline delivering real-time vehicle and billing information to SiriusXM and toll authorities, enabling seamless toll passage for 50,000+ fleet vehicles',
-        'Developed intelligent billing system automatically routing traffic violations and toll charges to appropriate customers, reducing manual billing errors by 85%',
-        'Integrated with third-party APIs for insurance verification, payment processing, and DMV systems, creating a unified ecosystem for rental operations',
-        'Reduced average rental processing time from 45 minutes to 12 minutes through workflow automation and optimized database queries'
-      ]
-    },
-    {
-      title: 'Software Engineering Specialist',
-      company: 'Dassault Systemes',
-      period: 'Oct 2020 - Jun 2023',
-      location: 'Bangalore, India',
-      type: 'industry',
-      highlights: [
-        'Architected Enterprise Message Bus—a distributed data streaming platform using AWS (Kinesis, SQS, S3, DynamoDB) processing 1M+ messages daily across 50+ microservices',
-        'Eliminated the need for coordinated API calls between services by implementing event-driven architecture, reducing API development time by 40% and improving system reliability with automatic retry mechanisms',
-        'Designed and built a configurable workflow engine enabling non-technical users to create complex business workflows through drag-and-drop interface, eliminating the need for custom development',
-        'Reduced client onboarding time by 60%—from 6 months to 2.5 months—by providing reusable workflow templates that companies could customize without programming',
-        'Orchestrated cluster of 15+ microservices handling 500,000+ workflow executions monthly with 99.9% uptime, serving 5 Fortune 500 companies',
-        'Developed Donor Management System for plasma donation centers managing 10,000+ donor records, payment tracking, equipment management, and clinical data with HIPAA compliance',
-        'Implemented real-time payment tracking and automated reconciliation reducing financial discrepancies by 95% and ensuring compliance with health and safety standards'
-      ]
-    }
-  ];
-
-  const ScrollToSection = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-  };
-
+const Reveal = ({ children, className = '' }: { children: ReactNode; className?: string }) => {
+  const ref = useReveal<HTMLDivElement>();
   return (
-    <div className="bg-gray-900 min-h-screen text-white">
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-gray-900 bg-opacity-95 backdrop-blur-md z-50 border-b border-gray-800">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div className="text-2xl font-bold text-emerald-400">BN</div>
-            <div className="hidden md:flex space-x-8">
-              <button onClick={() => ScrollToSection('about')} className="hover:text-emerald-400 transition">About</button>
-              <button onClick={() => ScrollToSection('experience')} className="hover:text-emerald-400 transition">Experience</button>
-              <button onClick={() => ScrollToSection('research')} className="hover:text-emerald-400 transition">Research</button>
-              <button onClick={() => ScrollToSection('skills')} className="hover:text-emerald-400 transition">Skills</button>
-              <button onClick={() => ScrollToSection('contact')} className="hover:text-emerald-400 transition">Contact</button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6">
-        <div className="container mx-auto max-w-6xl">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <div className="text-emerald-400 text-sm tracking-widest mb-4 uppercase">
-                Full Stack Developer → ML/AI Engineer
-              </div>
-              <h1 className="text-5xl md:text-6xl font-bold mb-6">
-                Brijesh Nanda B Y
-              </h1>
-              <p className="text-xl text-gray-400 mb-8">
-                Building intelligent systems at the intersection of Software Engineering and Computer Vision
-              </p>
-              <div className="flex space-x-4">
-                <a href="https://github.com/brijesh-nanda-by" target="_blank" rel="noopener noreferrer"
-                   className="bg-gray-800 p-3 rounded-lg hover:bg-emerald-400 hover:text-gray-900 transition">
-                  <Github className="w-6 h-6" />
-                </a>
-                <a href="https://www.linkedin.com/in/brijesh-nanda-b-y" target="_blank" rel="noopener noreferrer"
-                   className="bg-gray-800 p-3 rounded-lg hover:bg-emerald-400 hover:text-gray-900 transition">
-                  <Linkedin className="w-6 h-6" />
-                </a>
-                <a href="mailto:brijeshnandaby@protonmail.com"
-                   className="bg-gray-800 p-3 rounded-lg hover:bg-emerald-400 hover:text-gray-900 transition">
-                  <Mail className="w-6 h-6" />
-                </a>
-              </div>
-            </div>
-            <div className="relative">
-              {/* Animated background gradient */}
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 via-cyan-400 to-blue-500 rounded-2xl opacity-20 blur-xl animate-pulse"></div>
-              
-              <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 p-8 rounded-2xl border-2 border-emerald-400 border-opacity-50 backdrop-blur">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center space-x-2">
-                    <div className="bg-emerald-400 bg-opacity-20 p-2 rounded-lg">
-                      <Brain className="w-6 h-6 text-emerald-400" />
-                    </div>
-                    <h3 className="text-xl font-bold text-emerald-400">Current Focus</h3>
-                  </div>
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                    <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse delay-100"></div>
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse delay-200"></div>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="group bg-gray-800 bg-opacity-50 p-4 rounded-xl border border-gray-700 hover:border-emerald-400 transition-all duration-300 hover:transform hover:scale-105">
-                    <div className="flex items-start space-x-3">
-                      <div className="text-3xl mt-1 group-hover:scale-110 transition-transform">🎯</div>
-                      <div className="flex-1">
-                        <div className="font-bold text-lg text-white mb-1">Computer Vision</div>
-                        <div className="text-gray-400 text-sm">Object Detection & Recognition</div>
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          <span className="text-xs bg-emerald-400 bg-opacity-20 text-emerald-400 px-2 py-0.5 rounded">SAM3</span>
-                          <span className="text-xs bg-cyan-400 bg-opacity-20 text-cyan-400 px-2 py-0.5 rounded">OWL-v2</span>
-                          <span className="text-xs bg-blue-400 bg-opacity-20 text-blue-400 px-2 py-0.5 rounded">DINO-v3</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="group bg-gray-800 bg-opacity-50 p-4 rounded-xl border border-gray-700 hover:border-emerald-400 transition-all duration-300 hover:transform hover:scale-105">
-                    <div className="flex items-start space-x-3">
-                      <div className="text-3xl mt-1 group-hover:scale-110 transition-transform">🌾</div>
-                      <div className="flex-1">
-                        <div className="font-bold text-lg text-white mb-1">Digital Agriculture</div>
-                        <div className="text-gray-400 text-sm">Animal Ecology Applications</div>
-                        <div className="mt-2 flex items-center space-x-2 text-xs text-gray-500">
-                          <Eye className="w-3 h-3" />
-                          <span>Wildlife Monitoring • Crop Analysis</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="group bg-gray-800 bg-opacity-50 p-4 rounded-xl border border-gray-700 hover:border-emerald-400 transition-all duration-300 hover:transform hover:scale-105">
-                    <div className="flex items-start space-x-3">
-                      <div className="text-3xl mt-1 group-hover:scale-110 transition-transform">🔬</div>
-                      <div className="flex-1">
-                        <div className="font-bold text-lg text-white mb-1">ML Pipeline Development</div>
-                        <div className="text-gray-400 text-sm">End-to-End Automation</div>
-                        <div className="mt-2 flex items-center space-x-2 text-xs text-gray-500">
-                          <Zap className="w-3 h-3" />
-                          <span>No-Code Research Platform</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mt-6 pt-4 border-t border-gray-700">
-                  <div className="flex items-center justify-between text-xs text-gray-400">
-                    <span className="flex items-center space-x-1">
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                      <span>Actively researching</span>
-                    </span>
-                    <span>@ ICICLE Project</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* About Section */}
-      <section id="about" className="py-20 px-6 bg-gray-800 bg-opacity-50">
-        <div className="container mx-auto max-w-6xl">
-          <h2 className="text-4xl font-bold mb-12 text-emerald-400">About Me</h2>
-          <div className="bg-gray-800 p-8 rounded-2xl border border-gray-700">
-            <p className="text-lg text-gray-300 leading-relaxed mb-4">
-              I'm a Full Stack Developer transitioning into ML/AI with nearly 4 years of software engineering experience. 
-              My journey began with building scalable enterprise systems using Java, Spring, and AWS, where I reduced 
-              API development time by 40% through innovative data streaming solutions.
-            </p>
-            <p className="text-lg text-gray-300 leading-relaxed">
-              Now, I'm channeling that engineering expertise into computer vision and machine learning at Ohio State 
-              University's ICICLE project, where I'm developing end-to-end ML pipelines for object detection in animal 
-              ecology and digital agriculture. My unique background in both software engineering and mechanical 
-              engineering gives me a systems-thinking approach to solving complex problems.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Research & ML Pipeline */}
-      <section id="research" className="py-20 px-6">
-        <div className="container mx-auto max-w-7xl">
-          <h2 className="text-4xl font-bold mb-12 text-emerald-400">Research & ML Pipeline</h2>
-          <div className="bg-gray-800 p-8 rounded-2xl border border-emerald-400 border-opacity-30 mb-8">
-            <div className="flex items-center space-x-3 mb-4">
-              <Camera className="w-8 h-8 text-emerald-400" />
-              <h3 className="text-2xl font-bold">ICICLE Object Detection Pipeline</h3>
-            </div>
-            <p className="text-gray-400 text-lg mb-2">
-              No-code ML platform for researchers in Animal Ecology and Digital Agriculture
-            </p>
-            <p className="text-gray-300 mb-6">
-              An end-to-end automated pipeline that democratizes object detection research through intuitive drag-and-drop 
-              interfaces, eliminating the need for programming expertise or manual job scheduling.
-            </p>
-          </div>
-
-          {/* Pipeline Diagram - Visual Workflow */}
-          <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 border border-emerald-400 border-opacity-20 mb-8">
-            <div className="text-center mb-4">
-              <h4 className="text-xl font-bold text-emerald-400 mb-2">Complete Workflow</h4>
-              <p className="text-gray-400 text-sm">Interactive timeline from data ingestion to deployment</p>
-            </div>
-            {/* Pipeline image from assets */}
-            <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
-              <img
-                src={pipelineImg}
-                alt="ICICLE object detection pipeline"
-                className="w-full h-auto rounded-lg"
-                loading="lazy"
-              />
-            </div>
-          </div>
-
-          {/* Detailed Pipeline Stages */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {pipelineStages.map((stage, idx) => (
-              <div 
-                key={stage.id}
-                onMouseEnter={() => setHoveredPipeline(idx)}
-                onMouseLeave={() => setHoveredPipeline(null)}
-                className={`bg-gray-800 rounded-xl p-6 border-2 transition-all duration-300 ${
-                  hoveredPipeline === idx 
-                    ? 'border-emerald-400 shadow-lg shadow-emerald-400/20 transform scale-105' 
-                    : 'border-gray-700'
-                }`}
-              >
-                {/* Icon */}
-                <div className={`mb-3 transition-colors ${
-                  hoveredPipeline === idx ? 'text-emerald-400' : 'text-gray-400'
-                }`}>
-                  {stage.icon}
-                </div>
-                
-                {/* Stage Name */}
-                <h4 className="text-lg font-bold mb-2 text-white">{stage.name}</h4>
-                
-                {/* Short Description */}
-                <p className="text-sm text-gray-400 mb-2">{stage.desc}</p>
-                
-                {/* Detailed Description */}
-                <p className="text-xs text-gray-300 leading-relaxed">
-                  {stage.details}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          {/* Key Features */}
-          <div className="mt-12 grid md:grid-cols-3 gap-6">
-            <div className="bg-gray-800 p-6 rounded-xl border border-gray-700">
-              <Target className="w-10 h-10 text-emerald-400 mb-3" />
-              <h4 className="text-lg font-bold mb-2">Intelligent Annotation</h4>
-              <p className="text-gray-400 text-sm">
-                SAM3-powered one-click segmentation with few-shot learning using OWL-v2 and DINO-v3
-              </p>
-            </div>
-            <div className="bg-gray-800 p-6 rounded-xl border border-gray-700">
-              <BarChart3 className="w-10 h-10 text-emerald-400 mb-3" />
-              <h4 className="text-lg font-bold mb-2">Visual Optimization</h4>
-              <p className="text-gray-400 text-sm">
-                Real-time IOU analysis with graphical comparison of predicted vs. ground truth boxes
-              </p>
-            </div>
-            <div className="bg-gray-800 p-6 rounded-xl border border-gray-700">
-              <Cpu className="w-10 h-10 text-emerald-400 mb-3" />
-              <h4 className="text-lg font-bold mb-2">Smart Orchestration</h4>
-              <p className="text-gray-400 text-sm">
-                Automated resource allocation and deployment with intelligent job scheduling
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-8 bg-gray-900 p-6 rounded-lg border border-gray-700">
-            <div className="flex flex-wrap gap-2 items-center">
-              <span className="text-emerald-400 font-semibold">Tech Stack:</span>
-              <span className="bg-gray-800 px-3 py-1 rounded text-sm">PyTorch</span>
-              {/* <span className="bg-gray-800 px-3 py-1 rounded text-sm">TensorFlow</span> */}
-              <span className="bg-gray-800 px-3 py-1 rounded text-sm">SAM3</span>
-              <span className="bg-gray-800 px-3 py-1 rounded text-sm">OWL-v2</span>
-              <span className="bg-gray-800 px-3 py-1 rounded text-sm">DINO-v3</span>
-              <span className="bg-gray-800 px-3 py-1 rounded text-sm">OpenCV</span>
-              <span className="bg-gray-800 px-3 py-1 rounded text-sm">AWS</span>
-              <span className="bg-gray-800 px-3 py-1 rounded text-sm">Docker</span>
-              <span className="bg-gray-800 px-3 py-1 rounded text-sm">Singularity containers</span>
-              {/* <span className="bg-gray-800 px-3 py-1 rounded text-sm">MLflow</span> */}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Experience Section */}
-      <section id="experience" className="py-20 px-6 bg-gray-800 bg-opacity-50">
-        <div className="container mx-auto max-w-6xl">
-          <h2 className="text-4xl font-bold mb-12 text-emerald-400">Experience</h2>
-          <div className="space-y-8">
-            {experience.map((exp, idx) => (
-              <div 
-                key={idx}
-                onMouseEnter={() => setHoveredCard(idx)}
-                onMouseLeave={() => setHoveredCard(null)}
-                className={`bg-gray-800 p-8 rounded-2xl border transition-all duration-300 ${
-                  hoveredCard === idx ? 'border-emerald-400 transform translate-x-2' : 'border-gray-700'
-                }`}
-              >
-                <div className="flex flex-col md:flex-row justify-between mb-6">
-                  <div>
-                    <h3 className="text-2xl font-bold mb-1">{exp.title}</h3>
-                    <div className="text-emerald-400 text-xl font-semibold">{exp.company}</div>
-                  </div>
-                  <div className="text-right mt-2 md:mt-0">
-                    <div className="text-gray-400 font-medium">{exp.period}</div>
-                    <div className="text-gray-400">{exp.location}</div>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  {exp.highlights.map((highlight, hIdx) => (
-                    <div key={hIdx} className="flex items-start space-x-3">
-                      <ArrowRight className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300 leading-relaxed">{highlight}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Skills Section */}
-      <section id="skills" className="py-20 px-6">
-        <div className="container mx-auto max-w-6xl">
-          <h2 className="text-4xl font-bold mb-12 text-emerald-400">Skills & Technologies</h2>
-          
-          <div className="flex flex-wrap gap-4 mb-8">
-            {['ML/AI', 'Backend', 'Frontend', 'Cloud & DevOps', 'Tools'].map((tab, idx) => (
-              <button
-                key={idx}
-                onClick={() => setActiveTab(idx)}
-                className={`px-6 py-3 rounded-lg font-semibold transition ${
-                  activeTab === idx 
-                    ? 'bg-emerald-400 text-gray-900' 
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-
-          <div className="bg-gray-800 p-8 rounded-2xl border border-gray-700">
-            <div className="flex flex-wrap gap-3">
-              {activeTab === 0 && skills.mlai.map((skill, idx) => (
-                <span key={idx} className="bg-gray-900 text-emerald-400 px-4 py-2 rounded-lg font-medium border border-emerald-400 border-opacity-30">
-                  {skill}
-                </span>
-              ))}
-              {activeTab === 1 && skills.backend.map((skill, idx) => (
-                <span key={idx} className="bg-gray-900 text-emerald-400 px-4 py-2 rounded-lg font-medium border border-emerald-400 border-opacity-30">
-                  {skill}
-                </span>
-              ))}
-              {activeTab === 2 && skills.frontend.map((skill, idx) => (
-                <span key={idx} className="bg-gray-900 text-emerald-400 px-4 py-2 rounded-lg font-medium border border-emerald-400 border-opacity-30">
-                  {skill}
-                </span>
-              ))}
-              {activeTab === 3 && skills.cloud.map((skill, idx) => (
-                <span key={idx} className="bg-gray-900 text-emerald-400 px-4 py-2 rounded-lg font-medium border border-emerald-400 border-opacity-30">
-                  {skill}
-                </span>
-              ))}
-              {activeTab === 4 && skills.tools.map((skill, idx) => (
-                <span key={idx} className="bg-gray-900 text-emerald-400 px-4 py-2 rounded-lg font-medium border border-emerald-400 border-opacity-30">
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Education Section */}
-      <section className="py-20 px-6 bg-gray-800 bg-opacity-50">
-        <div className="container mx-auto max-w-6xl">
-          <h2 className="text-4xl font-bold mb-12 text-emerald-400">Education</h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-gray-800 p-8 rounded-2xl border border-gray-700">
-              <Code className="w-12 h-12 text-emerald-400 mb-4" />
-              <h3 className="text-2xl font-bold mb-2">MS in Computer Science</h3>
-              <div className="text-emerald-400 font-semibold mb-2">Ohio State University</div>
-              <div className="text-gray-400 mb-4">Aug 2024 - May 2026</div>
-              <div className="text-gray-300">
-                Focus: Machine Learning, AI, Computer Vision, Advanced Algorithms, Data Mining
-              </div>
-            </div>
-            <div className="bg-gray-800 p-8 rounded-2xl border border-gray-700">
-              <Settings className="w-12 h-12 text-emerald-400 mb-4" />
-              <h3 className="text-2xl font-bold mb-2">BE in Mechanical Engineering</h3>
-              <div className="text-emerald-400 font-semibold mb-2">National Institute of Engineering</div>
-              <div className="text-gray-400 mb-4">Aug 2016 - May 2020</div>
-              <div className="text-gray-300">
-                CGPA: 9.52/10.0 • Systems Thinking • Engineering Fundamentals
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Contact Section */}
-      <section id="contact" className="py-20 px-6">
-        <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-4xl font-bold mb-6 text-emerald-400">Get In Touch</h2>
-          <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
-            I'm currently open to research opportunities and collaborations in ML/AI and Computer Vision. 
-            Whether you want to discuss projects or just say hi, feel free to reach out!
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <a 
-              href="mailto:brijeshnandaby@protonmail.com"
-              className="flex items-center space-x-2 bg-emerald-400 text-gray-900 px-6 py-3 rounded-lg font-semibold hover:bg-emerald-300 transition"
-            >
-              <Mail className="w-5 h-5" />
-              <span>Send Email</span>
-            </a>
-            <button className="flex items-center space-x-2 border-2 border-emerald-400 text-emerald-400 px-6 py-3 rounded-lg font-semibold hover:bg-emerald-400 hover:text-gray-900 transition">
-              <Download className="w-5 h-5" />
-              <span>Download Resume</span>
-            </button>
-          </div>
-        </div>
-      </section>
+    <div ref={ref} className={`reveal ${className}`}>
+      {children}
     </div>
   );
 };
+
+const Section = ({ id, index, title, children }: { id: string; index: string; title: string; children: ReactNode }) => (
+  <section id={id} className="border-t border-line px-4 py-20 sm:px-6 md:py-28">
+    <div className="mx-auto max-w-6xl">
+      <Reveal className="mb-12 flex items-baseline gap-4 md:mb-16">
+        <span className="font-mono text-xs text-accent">{index}</span>
+        <h2 className="font-display text-4xl tracking-tight md:text-5xl">{title}</h2>
+      </Reveal>
+      {children}
+    </div>
+  </section>
+);
+
+const Chips = ({ items }: { items: string[] }) => (
+  <ul className="flex flex-wrap gap-1.5">
+    {items.map((s) => (
+      <li key={s} className="rounded-md border border-line bg-surface-2 px-2 py-0.5 font-mono text-[11px] text-muted">
+        {s}
+      </li>
+    ))}
+  </ul>
+);
+
+const Hero = () => (
+  <section id="top" className="relative overflow-hidden px-4 pb-20 pt-32 sm:px-6 md:pb-28 md:pt-40">
+    <div
+      aria-hidden
+      className="pointer-events-none absolute -top-40 right-0 h-[480px] w-[480px] rounded-full bg-accent opacity-[0.07] blur-3xl"
+    />
+    <div className="relative mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-[1.15fr_1fr]">
+      <div>
+        <p className="mb-6 inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 font-mono text-xs text-muted">
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60 motion-reduce:hidden" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
+          </span>
+          {profile.role} · ICICLE, Ohio State
+        </p>
+        <h1 className="font-display text-5xl leading-[1.02] tracking-tight [text-wrap:balance] sm:text-6xl md:text-7xl">
+          {profile.name.replace(/ (\S+ \S+)$/, ' ')}
+          <span className="whitespace-nowrap">{profile.name.split(' ').slice(-2).join(' ')}</span>
+        </h1>
+        <p className="mt-6 max-w-xl text-xl leading-snug text-fg md:text-2xl">
+          {profile.tagline.split('without writing code')[0]}
+          <em className="font-display text-accent">without writing code.</em>
+        </p>
+        <p className="mt-5 max-w-xl text-muted">{profile.summary}</p>
+
+        <div className="mt-9 flex flex-wrap items-center gap-3">
+          <a
+            href="#work"
+            className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-medium text-accent-ink transition-transform hover:-translate-y-0.5"
+          >
+            See selected work <ArrowDown className="h-4 w-4" />
+          </a>
+          <a
+            href={profile.resume}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-full border border-line px-5 py-2.5 text-sm font-medium transition-colors hover:border-fg"
+          >
+            <Download className="h-4 w-4" /> Résumé (PDF)
+          </a>
+          <div className="ml-1 flex items-center gap-1">
+            {[
+              { href: profile.github, label: 'GitHub', icon: Github },
+              { href: profile.linkedin, label: 'LinkedIn', icon: Linkedin },
+              { href: `mailto:${profile.email}`, label: 'Email', icon: Mail },
+            ].map(({ href, label, icon: Icon }) => (
+              <a
+                key={label}
+                href={href}
+                target={href.startsWith('http') ? '_blank' : undefined}
+                rel="noopener noreferrer"
+                aria-label={label}
+                className="grid h-10 w-10 place-items-center rounded-full text-muted transition-colors hover:bg-surface-2 hover:text-fg"
+              >
+                <Icon className="h-[18px] w-[18px]" />
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <DetectionVisual />
+    </div>
+
+    <dl className="relative mx-auto mt-20 grid max-w-6xl grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line md:grid-cols-4">
+      {stats.map((s) => (
+        <div key={s.label} className="bg-bg p-5 md:p-6">
+          <dt className="sr-only">{s.label}</dt>
+          <dd className="font-display text-4xl tracking-tight">{s.value}</dd>
+          <dd className="mt-1 text-sm text-muted">{s.label}</dd>
+        </div>
+      ))}
+    </dl>
+  </section>
+);
+
+const FeaturedProject = ({ project }: { project: Project }) => {
+  const [step, setStep] = useState(0);
+  const steps = project.steps ?? [];
+
+  return (
+    <Reveal className="overflow-hidden rounded-3xl border border-line bg-surface">
+      <div className="grid gap-10 p-6 md:p-10 lg:grid-cols-[1fr_1.1fr]">
+        <div>
+          <p className="font-mono text-xs uppercase tracking-wider text-accent">{project.kicker}</p>
+          <h3 className="mt-3 font-display text-4xl tracking-tight md:text-5xl">{project.title}</h3>
+          <p className="mt-4 text-muted">{project.summary}</p>
+          <ul className="mt-6 space-y-2.5">
+            {project.highlights.map((h) => (
+              <li key={h} className="flex gap-3 text-sm">
+                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                {h}
+              </li>
+            ))}
+          </ul>
+          <div className="mt-6">
+            <Chips items={project.stack} />
+          </div>
+        </div>
+
+        <div>
+          <p className="mb-3 font-mono text-xs uppercase tracking-wider text-muted">How it works</p>
+          <ol className="grid grid-cols-5 gap-1.5" role="tablist" aria-label="Pipeline stages">
+            {steps.map((s, i) => (
+              <li key={s.name} role="presentation">
+                <button
+                  role="tab"
+                  aria-selected={step === i}
+                  aria-controls="pipeline-step"
+                  onClick={() => setStep(i)}
+                  className={`group w-full text-left`}
+                >
+                  <span
+                    className={`block h-1 rounded-full transition-colors ${i <= step ? 'bg-accent' : 'bg-line group-hover:bg-muted'}`}
+                  />
+                  <span className={`mt-2 block font-mono text-[11px] ${step === i ? 'text-fg' : 'text-muted'}`}>
+                    0{i + 1}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ol>
+          <div id="pipeline-step" role="tabpanel" className="mt-4 min-h-[112px] rounded-xl border border-line bg-surface-2 p-5">
+            <p className="font-medium">{steps[step]?.name}</p>
+            <p className="mt-1.5 text-sm text-muted">{steps[step]?.detail}</p>
+          </div>
+          <figure className="mt-5 overflow-hidden rounded-xl border border-line bg-white">
+            <img src={pipelineImg} alt="Diagram of the ICICLE object detection pipeline" className="h-auto w-full" loading="lazy" />
+          </figure>
+        </div>
+      </div>
+    </Reveal>
+  );
+};
+
+const ProjectCard = ({ project }: { project: Project }) => (
+  <Reveal className="group flex h-full flex-col rounded-2xl border border-line bg-surface p-6 transition-colors hover:border-accent/50 md:p-8">
+    <p className="font-mono text-xs uppercase tracking-wider text-accent">{project.kicker}</p>
+    <h3 className="mt-3 text-2xl font-semibold tracking-tight">{project.title}</h3>
+    <p className="mt-3 text-sm text-muted">{project.summary}</p>
+    <ul className="mt-5 flex-1 space-y-2">
+      {project.highlights.map((h) => (
+        <li key={h} className="flex gap-3 text-sm">
+          <span className="mt-2 h-1 w-3 shrink-0 rounded-full bg-line transition-colors group-hover:bg-accent" />
+          {h}
+        </li>
+      ))}
+    </ul>
+    <div className="mt-6">
+      <Chips items={project.stack} />
+    </div>
+  </Reveal>
+);
+
+const ContactSection = () => {
+  const [copied, setCopied] = useState(false);
+
+  const copyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText(profile.email);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      window.location.href = `mailto:${profile.email}`;
+    }
+  };
+
+  return (
+    <section id="contact" className="border-t border-line px-4 py-24 sm:px-6 md:py-32">
+      <Reveal className="mx-auto max-w-4xl text-center">
+        <span className="font-mono text-xs text-accent">06</span>
+        <h2 className="mt-4 font-display text-5xl tracking-tight md:text-7xl">
+          Let’s build something <em className="text-accent">useful.</em>
+        </h2>
+        <p className="mx-auto mt-6 max-w-xl text-muted">
+          I’m happy to talk about research collaborations, ML infrastructure, or tooling that makes scientists faster.
+        </p>
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+          <a
+            href={`mailto:${profile.email}`}
+            className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 font-medium text-accent-ink transition-transform hover:-translate-y-0.5"
+          >
+            <Mail className="h-4 w-4" /> Email me
+          </a>
+          <button
+            onClick={copyEmail}
+            className="inline-flex items-center gap-2 rounded-full border border-line px-5 py-3 font-mono text-sm text-muted transition-colors hover:text-fg"
+            aria-live="polite"
+          >
+            {copied ? <Check className="h-4 w-4 text-accent" /> : <Copy className="h-4 w-4" />}
+            {copied ? 'Copied!' : profile.email}
+          </button>
+        </div>
+        <div className="mt-8 flex items-center justify-center gap-6 text-sm text-muted">
+          <a href={profile.linkedin} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:text-fg">
+            LinkedIn <ArrowUpRight className="h-3.5 w-3.5" />
+          </a>
+          <a href={profile.github} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:text-fg">
+            GitHub <ArrowUpRight className="h-3.5 w-3.5" />
+          </a>
+          <span className="inline-flex items-center gap-1">
+            <MapPin className="h-3.5 w-3.5" /> {profile.location}
+          </span>
+        </div>
+      </Reveal>
+    </section>
+  );
+};
+
+const Portfolio = () => (
+  <div className="min-h-screen bg-bg text-fg">
+    <a href="#work" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded focus:bg-accent focus:px-3 focus:py-2 focus:text-accent-ink">
+      Skip to content
+    </a>
+    <Nav />
+    <main>
+      <Hero />
+
+      <Section id="work" index="01" title="Selected work">
+        <FeaturedProject project={featured} />
+        <div className="mt-6 grid gap-6 md:grid-cols-2">
+          {projects.map((p) => (
+            <ProjectCard key={p.id} project={p} />
+          ))}
+        </div>
+      </Section>
+
+      <Section id="publications" index="02" title="Publications">
+        <div className="divide-y divide-line border-y border-line">
+          {publications.map((p) => (
+            <Reveal key={p.title} className="grid gap-3 py-7 md:grid-cols-[180px_1fr_auto] md:items-baseline md:gap-8">
+              <div className="font-mono text-sm">
+                <span className="text-accent">{p.venue}</span>
+                <span className="block text-xs text-muted">{p.track}</span>
+              </div>
+              <p className="flex items-start gap-3 text-lg leading-snug md:text-xl">
+                <FileText className="mt-1 h-5 w-5 shrink-0 text-muted" />
+                {p.title}
+              </p>
+              <span className="w-fit rounded-full bg-accent-soft px-3 py-1 font-mono text-xs text-accent">{p.status}</span>
+            </Reveal>
+          ))}
+        </div>
+      </Section>
+
+      <Section id="experience" index="03" title="Experience">
+        <div className="space-y-14">
+          {experience.map((job) => (
+            <Reveal key={job.company} className="grid gap-6 md:grid-cols-[240px_1fr] md:gap-12">
+              <div>
+                <h3 className="text-lg font-semibold">{job.company}</h3>
+                <p className="text-sm text-muted">{job.location}</p>
+              </div>
+              <ol className="relative space-y-10 border-l border-line pl-6">
+                {job.roles.map((role, i) => (
+                  <li key={role.title} className="relative">
+                    <span
+                      className={`absolute -left-[29.5px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-bg ${
+                        i === 0 ? 'bg-accent' : 'bg-muted'
+                      }`}
+                    />
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-4">
+                      <h4 className="text-xl font-medium">{role.title}</h4>
+                      <span className="font-mono text-xs text-muted">{role.period}</span>
+                    </div>
+                    <ul className="mt-4 space-y-2.5">
+                      {role.highlights.map((h) => (
+                        <li key={h} className="text-muted">
+                          {h}
+                        </li>
+                      ))}
+                    </ul>
+                  </li>
+                ))}
+              </ol>
+            </Reveal>
+          ))}
+        </div>
+      </Section>
+
+      <Section id="skills" index="04" title="Toolkit">
+        <div className="grid gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
+          {skills.map((s) => (
+            <Reveal key={s.group} className="bg-bg p-6">
+              <h3 className="mb-4 font-mono text-xs uppercase tracking-wider text-accent">{s.group}</h3>
+              <Chips items={s.items} />
+            </Reveal>
+          ))}
+        </div>
+      </Section>
+
+      <Section id="education" index="05" title="Education">
+        <div className="grid gap-6 md:grid-cols-2">
+          {education.map((e) => (
+            <Reveal key={e.degree} className="rounded-2xl border border-line bg-surface p-6 md:p-8">
+              <p className="font-mono text-xs text-muted">{e.period}</p>
+              <h3 className="mt-3 font-display text-3xl tracking-tight">{e.degree}</h3>
+              <p className="mt-1 font-medium text-accent">{e.school}</p>
+              <p className="mt-4 text-sm text-muted">{e.detail}</p>
+            </Reveal>
+          ))}
+        </div>
+      </Section>
+
+      <ContactSection />
+    </main>
+
+    <footer className="border-t border-line px-4 py-8 sm:px-6">
+      <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 text-xs text-muted sm:flex-row">
+        <span>© {new Date().getFullYear()} {profile.fullName}</span>
+        <span className="font-mono">Built with React, TypeScript & Tailwind</span>
+      </div>
+    </footer>
+  </div>
+);
 
 export default Portfolio;
